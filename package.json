@@ -1,0 +1,29 @@
+{
+	"name": "@jdeighan/FileProcessor",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "read/write files",
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"exports": {
+		".": "./src/lib/FileProcessor.js",
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"build": "cls && npx coffee -c .",
+		"test": "npm run build && npx ava ./test/*.test.js && git status"
+	},
+	"keywords": [
+		"coffeescript"
+	],
+	"author": "John Deighan",
+	"license": "MIT",
+	"devDependencies": {
+		"ava": "^6.0.1",
+		"coffeescript": "^2.7.0"
+	},
+	"dependencies": {
+		"@jdeighan/base-utils": "^9.0.10"
+	}
+}

@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "FileProcessor.test.js",
+  "sourceRoot": "..\\",
+  "sources": [
+    "test\\FileProcessor.test.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAA2B;AAAA,IAAA,eAAA,EAAA;;AAE3B,OAAA;EAAQ,OAAR;EAAiB,GAAjB;CAAA,MAAA;;AACA,OAAA;EAAQ,KAAR;CAAA,MAAA;;AACA,OAAA;EAAQ,aAAR;CAAA,MAAA,0BAJ2B;;;AAQrB,kBAAN,MAAA,gBAAA,QAA8B,cAA9B;EAEC,KAAO,CAAA,CAAA;IAEN,IAAC,CAAA,KAAD,GAAS;EAFH,CAAR;;;EAOC,UAAY,CAAC,SAAD,CAAA;AAEX,WAAQ,SAAS,CAAC,GAAV,KAAiB;EAFd,CAPb;;;EAaC,SAAW,CAAC,SAAD,CAAA;IAEV,GAAA,CAAI,CAAA,MAAA,CAAA,CAAS,SAAS,CAAC,QAAnB,CAAA,CAAJ;EAFU,CAbZ;;;EAoBC,UAAY,CAAC,IAAD,EAAO,OAAP,EAAgB,SAAhB,CAAA;AAEb,QAAA,CAAA,EAAA,IAAA,EAAA,QAAA,EAAA,GAAA,EAAA;IAAE,QAAA,GAAW,IAAI,CAAC,KAAL,CAAW,gBAAX,EAAb;IAKE,IAAG,OAAA,CAAQ,QAAR,CAAH;MACC,CAAC,CAAD,EAAI,IAAJ,EAAU,IAAV,CAAA,GAAkB;MAClB,GAAA,GAAM,IAAI,CAAC;MACX,OAAO,CAAC,GAAR,CAAY,CAAA,CAAA,CAAG,GAAH,EAAA,CAAA,CAAU,IAAV,CAAA,CAAZ;MACA,IAAC,CAAA,KAAD,IAAU;MACV,IAAI,IAAC,CAAA,KAAD,KAAU,EAAd;AACC,eAAO;UAAC,KAAA,EAAO;QAAR,EADR;OALD;;EAPW;;AAtBb;;AAsCA,EAAA,GAAK,IAAI,eAAJ,CAAoB,SAApB;;AACL,EAAE,CAAC,EAAH,CAAA",
+  "sourcesContent": [
+    "# FileProcessor.test.coffee\r\n\r\nimport {defined, LOG} from '@jdeighan/base-utils'\r\nimport {utest} from '@jdeighan/base-utils/utest'\r\nimport {FileProcessor} from '@jdeighan/FileProcessor'\r\n\r\n# ---------------------------------------------------------------------------\r\n\r\nclass MyFileProcessor extends FileProcessor\r\n\r\n\tbegin: () ->\r\n\r\n\t\t@count = 0\r\n\t\treturn\r\n\r\n\t# ..........................................................\r\n\r\n\tfilterFile: (hFileInfo) ->\r\n\r\n\t\treturn (hFileInfo.ext == '.zh')\r\n\r\n\t# ..........................................................\r\n\r\n\tbeginFile: (hFileInfo) ->\r\n\r\n\t\tLOG \"FILE: #{hFileInfo.fileName}\"\r\n\t\treturn\r\n\r\n\t# ..........................................................\r\n\r\n\thandleLine: (line, lineNum, hFileInfo) ->\r\n\r\n\t\tlMatches = line.match ///^\r\n\t\t\t(\\**)       # leading asterisks\r\n\t\t\t\\s+\r\n\t\t\t(\\S+)\r\n\t\t\t///\r\n\t\tif defined(lMatches)\r\n\t\t\t[_, lAst, word] = lMatches\r\n\t\t\tnum = lAst.length\r\n\t\t\tconsole.log \"#{num} #{word}\"\r\n\t\t\t@count += 1\r\n\t\t\tif (@count == 10)\r\n\t\t\t\treturn {abort: true}\r\n\t\treturn\r\n\r\nfp = new MyFileProcessor('./test/')\r\nfp.go()\r\n\r\n"
+  ]
+}
