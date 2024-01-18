@@ -34,35 +34,18 @@ export class FileProcessor
 
 		# --- convert path to a full path
 		@path = mkpath @path
+		@numFiles = 0
+		@hNumLines = {}     # { <filePath> => <numLines>, ... }
 		dbgReturn 'FileProcessor'
 
 	# ..........................................................
-	# --- called at beginning of @go()
 
-	begin: () ->
+	totalLines: () ->
 
-		dbg "begin() called"
-		return
-
-	# ..........................................................
-	# --- called at end of @go()
-
-	end: () ->
-
-		dbg "end() called"
-		return
-
-	# ..........................................................
-
-	filterFile: (hFileInfo) ->
-
-		return true    # by default, handle all files in dir
-
-	# ..........................................................
-
-	filterLine: (line, lineNum, hFileInfo) ->
-
-		return true    # by default, handle all lines in file
+		tot = 0
+		for path in Object.keys(@hNumLines)
+			tot += @hNumLines[path]
+		return tot
 
 	# ..........................................................
 
@@ -97,25 +80,69 @@ export class FileProcessor
 		return
 
 	# ..........................................................
+	# --- called at beginning of @go()
+
+	begin: () ->
+
+		dbg "begin() called"
+		return
+
+	# ..........................................................
+	# --- called at end of @go()
+
+	end: () ->
+
+		dbg "end() called"
+		return
+
+	# ..........................................................
+
+	filterFile: (hFileInfo) ->
+
+		return true    # by default, handle all files in dir
+
+	# ..........................................................
+	# --- default handleFile() calls handleLine() for each line
+
+	handleFile: (hFileInfo) ->
+
+		# --- if we're here, then filterFile() returned true
+		@beginFile hFileInfo
+		@procFile hFileInfo
+		@endFile hFileInfo
+		@numFiles += 1
+		return
+
+	# ..........................................................
 
 	beginFile: (hFileInfo) ->
 
-		return    # by default, does nothing
+		return
+
+	# ..........................................................
+
+	recordNumLines: (path, numLines) ->
+
+		@hNumLines[path] = numLines
+		return
 
 	# ..........................................................
 
 	procFile: (hFileInfo) ->
 
 		assert defined(hFileInfo), "procFile(): hFileInfo = undef"
-		lineNum = 1
+		filePath = hFileInfo.filePath
+		numLines = 0
 		for line from allLinesIn(hFileInfo.filePath)
-			if @filterLine line, lineNum, hFileInfo
-				hResult = @handleLine line, lineNum, hFileInfo
+			numLines += 1
+			if @filterLine line, numLines+1, hFileInfo
+				hResult = @handleLine line, numLines+1, hFileInfo
 				if defined(hResult)
 					assert isHash(hResult), "handleLine() return not a hash"
 					if hResult.abort
+						@recordNumLines filePath, numLines
 						return
-			lineNum += 1
+		@recordNumLines filePath, numLines
 		return
 
 	# ..........................................................
@@ -125,17 +152,15 @@ export class FileProcessor
 		return   # by default, does nothing
 
 	# ..........................................................
-	# --- default handleFile() calls handleLine() for each line
 
-	handleFile: (hFileInfo) ->
+	filterLine: (line, lineNum, hFileInfo) ->
 
-		@beginFile hFileInfo
-		@procFile hFileInfo
-		@endFile hFileInfo
-		return
+		return true    # by default, handle all lines in file
 
 	# ..........................................................
 
 	handleLine: (line, lineNum, hFileInfo) ->
 
+		# --- if we're here, then filterLine() returned true
 		return   # by default, does nothing
+

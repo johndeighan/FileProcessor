@@ -18,18 +18,17 @@ import {
 // ---------------------------------------------------------------------------
 MyFileProcessor = class MyFileProcessor extends FileProcessor {
   begin() {
-    this.lLines = [];
-    this.numFiles = 0;
+    this.lLines = []; // collect output lines here
   }
 
   // ..........................................................
   filterFile(hFileInfo) {
-    return hFileInfo.ext === '.zh';
+    return (hFileInfo.ext === '.zh') && (this.lLines.length < 10);
   }
 
   // ..........................................................
-  beginFile(hFileInfo) {
-    this.numFiles += 1;
+  filterLine(hFileInfo) {
+    return this.lLines.length < 10;
   }
 
   // ..........................................................
@@ -57,3 +56,5 @@ fp.go();
 utest.equal(42, fp.lLines.length, 10);
 
 utest.equal(43, fp.numFiles, 2);
+
+utest.equal(44, fp.totalLines(), 10);

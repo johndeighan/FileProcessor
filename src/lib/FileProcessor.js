@@ -30,8 +30,8 @@ import {
 
 // ---------------------------------------------------------------------------
 export var FileProcessor = class FileProcessor {
-  constructor(path, hOptions = {}) {
-    this.path = path;
+  constructor(path1, hOptions = {}) {
+    this.path = path1;
     // --- path can be a file or directory
     // --- Valid options:
     //        recursive
@@ -45,34 +45,24 @@ export var FileProcessor = class FileProcessor {
     assert((this.pathType === 'dir') || (this.pathType === 'file'), `path type ${this.pathType} must be dir or file`);
     // --- convert path to a full path
     this.path = mkpath(this.path);
+    this.numFiles = 0;
+    this.hNumLines = {}; // { <filePath> => <numLines>, ... }
     dbgReturn('FileProcessor');
   }
 
   // ..........................................................
-  // --- called at beginning of @go()
-  begin() {
-    dbg("begin() called");
+  totalLines() {
+    var i, len, path, ref, tot;
+    tot = 0;
+    ref = Object.keys(this.hNumLines);
+    for (i = 0, len = ref.length; i < len; i++) {
+      path = ref[i];
+      tot += this.hNumLines[path];
+    }
+    return tot;
   }
 
   // ..........................................................
-  // --- called at end of @go()
-  end() {
-    dbg("end() called");
-  }
-
-  // ..........................................................
-  filterFile(hFileInfo) {
-    return true; // by default, handle all files in dir
-  }
-
-  
-    // ..........................................................
-  filterLine(line, lineNum, hFileInfo) {
-    return true; // by default, handle all lines in file
-  }
-
-  
-    // ..........................................................
   go() {
     var count, hFileInfo, hOpt, name, ref;
     this.begin();
@@ -111,27 +101,62 @@ export var FileProcessor = class FileProcessor {
   }
 
   // ..........................................................
-  beginFile(hFileInfo) {} // by default, does nothing
+  // --- called at beginning of @go()
+  begin() {
+    dbg("begin() called");
+  }
+
+  // ..........................................................
+  // --- called at end of @go()
+  end() {
+    dbg("end() called");
+  }
+
+  // ..........................................................
+  filterFile(hFileInfo) {
+    return true; // by default, handle all files in dir
+  }
 
   
     // ..........................................................
+  // --- default handleFile() calls handleLine() for each line
+  handleFile(hFileInfo) {
+    // --- if we're here, then filterFile() returned true
+    this.beginFile(hFileInfo);
+    this.procFile(hFileInfo);
+    this.endFile(hFileInfo);
+    this.numFiles += 1;
+  }
+
+  // ..........................................................
+  beginFile(hFileInfo) {}
+
+  // ..........................................................
+  recordNumLines(path, numLines) {
+    this.hNumLines[path] = numLines;
+  }
+
+  // ..........................................................
   procFile(hFileInfo) {
-    var hResult, line, lineNum, ref;
+    var filePath, hResult, line, numLines, ref;
     assert(defined(hFileInfo), "procFile(): hFileInfo = undef");
-    lineNum = 1;
+    filePath = hFileInfo.filePath;
+    numLines = 0;
     ref = allLinesIn(hFileInfo.filePath);
     for (line of ref) {
-      if (this.filterLine(line, lineNum, hFileInfo)) {
-        hResult = this.handleLine(line, lineNum, hFileInfo);
+      numLines += 1;
+      if (this.filterLine(line, numLines + 1, hFileInfo)) {
+        hResult = this.handleLine(line, numLines + 1, hFileInfo);
         if (defined(hResult)) {
           assert(isHash(hResult), "handleLine() return not a hash");
           if (hResult.abort) {
+            this.recordNumLines(filePath, numLines);
             return;
           }
         }
       }
-      lineNum += 1;
     }
+    this.recordNumLines(filePath, numLines);
   }
 
   // ..........................................................
@@ -139,14 +164,14 @@ export var FileProcessor = class FileProcessor {
 
   
     // ..........................................................
-  // --- default handleFile() calls handleLine() for each line
-  handleFile(hFileInfo) {
-    this.beginFile(hFileInfo);
-    this.procFile(hFileInfo);
-    this.endFile(hFileInfo);
+  filterLine(line, lineNum, hFileInfo) {
+    return true; // by default, handle all lines in file
   }
 
-  // ..........................................................
+  
+    // ..........................................................
   handleLine(line, lineNum, hFileInfo) {} // by default, does nothing
 
 };
+
+// --- if we're here, then filterLine() returned true

@@ -10,22 +10,20 @@ class MyFileProcessor extends FileProcessor
 
 	begin: () ->
 
-		@lLines = []
-		@numFiles = 0
+		@lLines = []   # collect output lines here
 		return
 
 	# ..........................................................
 
 	filterFile: (hFileInfo) ->
 
-		return (hFileInfo.ext == '.zh')
+		return (hFileInfo.ext == '.zh') && (@lLines.length < 10)
 
 	# ..........................................................
 
-	beginFile: (hFileInfo) ->
+	filterLine: (hFileInfo) ->
 
-		@numFiles += 1
-		return
+		return (@lLines.length < 10)
 
 	# ..........................................................
 
@@ -49,3 +47,4 @@ fp.go()
 
 utest.equal 42, fp.lLines.length, 10
 utest.equal 43, fp.numFiles, 2
+utest.equal 44, fp.totalLines(), 10
